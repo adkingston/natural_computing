@@ -59,19 +59,18 @@ TRAINLOADER = torch.utils.data.DataLoader(SPIRAL_DATA, batch_size=16)
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
-        self.pipe = nn.Sequential(
-            nn.Linear(4, 5),
-            nn.ReLU(),
-            nn.Linear(5, 4),
-            nn.ReLU(),
-            nn.Linear(4, 3),
-            nn.ReLU(),
-            nn.Linear(3, 1),
-            nn.LogSoftmax(dim=1)
-        )
+        self.fc1 = nn.Linear(4, 5)
+        self.fc2 = nn.Linear(5, 6)
+        self.fc3 = nn.Linear(6, 2)
+        self.fc4 = nn.Linear(2, 1)
 
     def forward(self, x):
-        return self.pipe(x)
+        relu = nn.Tanh()
+        x = relu(self.fc1(x))
+        x = relu(self.fc2(x))
+        x = relu(self.fc3(x))
+        x = relu(self.fc4(x))
+        return x
 
 
 NET = NeuralNetwork()
