@@ -14,7 +14,7 @@ import math
 
 def init_pos(limit):
     """ limit is a 2 element list where elt 1 < elt 2 """
-    return rd.random()
+    return limit[0] + (limit[1] - limit[0]) * rd.random()
 
 
 class Particle:
@@ -50,7 +50,6 @@ class Particle:
         """ if the current position is better than the current best, update """
         curr_fitness = objective(self.particle_position)
         if curr_fitness < self.best_fitness:
-            print(f"UPDATING PARTICLE! {curr_fitness}")
             self.best = self.particle_position
             self.best_fitness = curr_fitness
 
@@ -97,7 +96,6 @@ class Swarm:
             # check if the particle's new pest is better than the current
             # global best
             if particle.best_fitness < self.best_global_fitness:
-                print(f"NEW GLOBAL BEST: {particle.best_fitness}")
                 self.global_best = particle.particle_position
                 self.best_global_fitness = particle.best_fitness
 

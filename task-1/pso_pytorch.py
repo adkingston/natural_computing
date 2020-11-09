@@ -69,21 +69,20 @@ TESTING_DATA = SpiralDataset(get_testing_data)
 
 # plt.show()
 
-TRAINLOADER = torch.utils.data.DataLoader(TRAINING_DATA, batch_size=10)
-TESTLOADER = torch.utils.data.DataLoader(TESTING_DATA, batch_size=4)
+TRAINLOADER = torch.utils.data.DataLoader(TRAINING_DATA, batch_size=140)
+TESTLOADER = torch.utils.data.DataLoader(TESTING_DATA, batch_size=140)
 
-SHAPE = [4, 1]
+SHAPE = [4, 5, 6, 2, 1]
 NET = my_net.new_net(shape=SHAPE, activator=nn.Tanh)
 DIMENSION = my_net.get_dimension(SHAPE)
 NET.to(DEVICE)
-SWARM = pso.Swarm(num=25, dimension=DIMENSION, limit=[-100000, 100000],
-                  omega=0.5, alpha_1=2.02, alpha_2=2.02)
+SWARM = pso.Swarm(num=20, dimension=DIMENSION, limit=[-1000, 1000],
+                  omega=0.9, alpha_1=-2, alpha_2=6)
 
 print("=============== TRAINING ===============")
-EPOCHS = 100
+EPOCHS = 5000
 for e in range(EPOCHS):
     running_loss = 0.0
-    index = 0
     for point, value in TRAINLOADER:
         point, value = point.to(DEVICE), value.to(DEVICE)
         NET.train()
@@ -97,11 +96,8 @@ for e in range(EPOCHS):
         prediction = NET(point)
         loss = my_net.squared_error(prediction, value)
         running_loss += loss.item()
-        print(
-            f"batch no: {index}, current loss: {loss.item()}, batch running loss: {running_loss}")
-        index += 1
     else:
-        print(f"training loss: {running_loss/len(TRAINLOADER)}")
+        print(f"epoch: {e}, training loss: {running_loss/len(TRAINLOADER)}")
 
 
 print("=============== TESTING ===============")
