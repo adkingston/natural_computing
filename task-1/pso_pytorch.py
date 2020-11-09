@@ -4,15 +4,17 @@ implements optimizer interface by pytorch
 
 from torch import nn
 import torch
+import pso
 import numpy as np
 from torch.utils.data import Dataset
 import torch.optim
 import matplotlib.pyplot as plt
+import nn as my_net
 
 
 class SpiralDataset(Dataset):
-    def __init__(self):
-        self.data = get_training_data()
+    def __init__(self, get_data):
+        self.data = get_data()
 
     def __len__(self):
         return len(self.data)
@@ -24,7 +26,7 @@ class SpiralDataset(Dataset):
         return self.data[idx]
 
 
-DEVICE = torch.device("cuda:0")
+DEVICE = torch.device("cpu")
 
 
 def get_training_data():
@@ -38,11 +40,25 @@ def get_training_data():
             y = torch.FloatTensor([float(y)]).to(DEVICE)
             out.append([vec, y])
 
-    return out
+    return out[:len(out) // 2]
 
 
-SPIRAL_DATA = SpiralDataset()
-print(len(SPIRAL_DATA))
+def get_testing_data():
+    out = []
+    with open("two_spirals.dat") as data:
+        for line in data:
+            x1, x2, y = line.split()
+            vec = torch.FloatTensor([float(x1), float(x2), np.sin(float(x1)),
+                                     np.sin(float(x2))])
+            vec = vec.to(DEVICE)
+            y = torch.FloatTensor([float(y)]).to(DEVICE)
+            out.append([vec, y])
+
+    return out[len(out) // 2:]
+
+
+TRAINING_DATA = SpiralDataset(get_training_data)
+TESTING_DATA = SpiralDataset(get_testing_data)
 # fig = plt.figure()
 # for i in range(len(SPIRAL_DATA)):
 # if SPIRAL_DATA[i][1] == 1:
@@ -53,49 +69,52 @@ print(len(SPIRAL_DATA))
 
 # plt.show()
 
-TRAINLOADER = torch.utils.data.DataLoader(SPIRAL_DATA, batch_size=16)
+TRAINLOADER = torch.utils.data.DataLoader(TRAINING_DATA, batch_size=10)
+TESTLOADER = torch.utils.data.DataLoader(TESTING_DATA, batch_size=4)
 
-
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
-        self.fc1 = nn.Linear(4, 5)
-        self.fc2 = nn.Linear(5, 6)
-        self.fc3 = nn.Linear(6, 2)
-        self.fc4 = nn.Linear(2, 1)
-
-    def forward(self, x):
-        relu = nn.Tanh()
-        x = relu(self.fc1(x))
-        x = relu(self.fc2(x))
-        x = relu(self.fc3(x))
-        x = relu(self.fc4(x))
-        return x
-
-
-NET = NeuralNetwork()
+SHAPE = [4, 1]
+NET = my_net.new_net(shape=SHAPE, activator=nn.Tanh)
+DIMENSION = my_net.get_dimension(SHAPE)
 NET.to(DEVICE)
-CRITERION = nn.MSELoss()
-OPTIMIZER = torch.optim.SGD(NET.parameters(), lr=0.1)
+SWARM = pso.Swarm(num=25, dimension=DIMENSION, limit=[-100000, 100000],
+                  omega=0.5, alpha_1=2.02, alpha_2=2.02)
 
-EPOCHS = 5000
+print("=============== TRAINING ===============")
+EPOCHS = 100
 for e in range(EPOCHS):
-    running_loss = []
-    i = 0
+    running_loss = 0.0
+    index = 0
     for point, value in TRAINLOADER:
         point, value = point.to(DEVICE), value.to(DEVICE)
         NET.train()
 
-        prediction = NET(point)
-        # prediction = torch.reshape(prediction, (-1, ))
-        loss = CRITERION(prediction, value)
-        OPTIMIZER.zero_grad()
-        # value = value.float()
-        loss.backward()
-        OPTIMIZER.step()
+        objective_func = my_net.objective(
+            point, value, NET, my_net.squared_error)
+        SWARM.perform_iteration(objective_func)
 
-        running_loss.append(loss.item())
+        my_net.update_weights(NET, SWARM.global_best)
+
+        prediction = NET(point)
+        loss = my_net.squared_error(prediction, value)
+        running_loss += loss.item()
+        print(
+            f"batch no: {index}, current loss: {loss.item()}, batch running loss: {running_loss}")
+        index += 1
     else:
-        # print(f"Training loss: {running_loss[-1]/len(TRAINLOADER)}")
-        l = sum(running_loss)
-        print(f"training loss: {l/len(TRAINLOADER)}")
+        print(f"training loss: {running_loss/len(TRAINLOADER)}")
+
+
+print("=============== TESTING ===============")
+# ensure the final global best is set
+my_net.update_weights(NET, SWARM.global_best)
+
+for e in range(5):
+    testing_loss = 0.0
+    for point, value in TESTLOADER:
+        point, value = point.to(DEVICE), value.to(DEVICE)
+        prediction = NET(point)
+        loss = my_net.squared_error(prediction, value)
+
+        testing_loss += loss.item()
+    else:
+        print(f"testing loss: {testing_loss/len(TESTLOADER)}")
