@@ -36,8 +36,8 @@ def get_spiral_data():
     with open("two_spirals.dat") as data:
         for line in data:
             x1, x2, y = line.split()
-            vec = torch.cuda.FloatTensor(
-                [float(x1), float(x2), np.sin(float(x1)), np.sin(float(x2))])
+            vec = torch.cuda.FloatTensor([float(x1), float(x2), float(
+                x1)**2, float(x2)**2, np.sin(float(x1)), np.sin(float(x2))])
             y = torch.cuda.FloatTensor([float(y)])
             out.append([vec, y])
 
@@ -55,14 +55,11 @@ def partition(lst, n=2):
 
 
 def get_train_test_sets(partitioned_dataset, iteration):
-    train = []
-    for i in range(len(partitioned_dataset)):
-        if i == iteration:
-            test = partitioned_dataset[i]
-        else:
-            train.extend(partitioned_dataset[i])
+    """ take partitioned dataset and return the full test and training sets """
+    training_set = [partitioned_dataset[i][x] for i in range(len(
+        partitioned_dataset)) if i != iteration for x in range(len(partitioned_dataset[i]))]
 
-    return train, test
+    return training_set, partitioned_dataset[iteration]
 
 
 def time_it(func):
@@ -75,6 +72,7 @@ def time_it(func):
     return wrapper
 
 
+@time_it
 def train_and_test(
         train_loader,
         test_loader,
@@ -88,15 +86,15 @@ def train_and_test(
     DEVICE = torch.device("cuda:0")
 
     # setup
-    neural_net = my_net.new_net(shape=shape, activator=nn.Tanh)
+    neural_net = my_net.new_net(shape=shape, activator=my_net.Sin)
     dimension = my_net.get_dimension(shape)
 
     neural_net.to(DEVICE)
 
-    swarm = pso.Swarm(num=20,
+    swarm = pso.Swarm(num=10,
                       dimension=dimension,
-                      limit=[-1e20,
-                             1e20],
+                      limit=[-0.5,
+                             0.5],
                       omega=omega,
                       alpha_1=alpha1,
                       alpha_2=alpha2)
@@ -113,7 +111,7 @@ def train_and_test(
                 point, value, neural_net, my_net.squared_error)
             swarm.perform_iteration(objective_func)
 
-            my_net.update_weights(neural_net, swarm.global_best)
+            my_net.update_weights(neural_net, swarm.g)
 
             prediction = neural_net(point)
             loss = my_net.squared_error(prediction, value)
@@ -129,7 +127,7 @@ def train_and_test(
     # record training loss
 
     # test
-    my_net.update_weights(neural_net, swarm.global_best)
+    my_net.update_weights(neural_net, swarm.g)
     testing_loss = 0
     for point, value in test_loader:
 
@@ -141,7 +139,7 @@ def train_and_test(
 
     testing_loss /= len(test_loader)
 
-    return (training_loss, training_loss, swarm.global_best)
+    return (training_loss, training_loss, swarm.g)
 
 
 if __name__ == '__main__':
@@ -150,7 +148,7 @@ if __name__ == '__main__':
 
     # we will use cross validation to try and get a better understanding of the
     # true error of the model
-    NUM_PARTS = 5
+    NUM_PARTS = 10
     PARTS = partition(DATA, NUM_PARTS)  # partition into 5 pieces
 
     AVERAGE_TRAIN_LOSS = 0.0
@@ -167,11 +165,11 @@ if __name__ == '__main__':
         RESULT = train_and_test(
             train_l,
             test_l,
-            epochs=4000,
-            shape=[4, 6, 1],
-            omega=0.15,
-            alpha1=2.2,
-            alpha2=2.7)
+            epochs=1000,
+            shape=[6, 8, 1],
+            omega=0.7,
+            alpha1=1.61,
+            alpha2=1.61)
         print(
             f'iteration: {iteration}, training loss: {RESULT[0]}, testing loss: {RESULT[1]}')
 

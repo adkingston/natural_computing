@@ -10,6 +10,14 @@ import torch
 import pso
 
 
+class Sin(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input):
+        return torch.sin(input)
+
+
 def new_net(shape, activator=nn.ReLU):
     """
     Creates a new neural network
