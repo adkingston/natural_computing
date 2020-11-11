@@ -165,9 +165,9 @@ if __name__ == '__main__':
         RESULT = train_and_test(
             train_l,
             test_l,
-            epochs=1000,
+            epochs=5000,
             shape=[6, 8, 1],
-            omega=0.7,
+            omega=0.6,
             alpha1=1.61,
             alpha2=1.61)
         print(
