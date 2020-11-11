@@ -4,17 +4,21 @@ implements optimizer interface by pytorch
 
 from torch import nn
 import torch
+import time
 import pso
 import numpy as np
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 import torch.optim
 import matplotlib.pyplot as plt
 import nn as my_net
+import random as rd
 
 
 class SpiralDataset(Dataset):
-    def __init__(self, get_data):
-        self.data = get_data()
+    """ implements pytorch dataset class """
+
+    def __init__(self, data):
+        self.data = data
 
     def __len__(self):
         return len(self.data)
@@ -26,91 +30,158 @@ class SpiralDataset(Dataset):
         return self.data[idx]
 
 
-DEVICE = torch.device("cpu")
-
-
-def get_training_data():
+def get_spiral_data():
+    """ gets data set from file """
     out = []
     with open("two_spirals.dat") as data:
         for line in data:
             x1, x2, y = line.split()
-            vec = torch.FloatTensor([float(x1), float(x2), np.sin(float(x1)),
-                                     np.sin(float(x2))])
-            vec = vec.to(DEVICE)
-            y = torch.FloatTensor([float(y)]).to(DEVICE)
+            vec = torch.cuda.FloatTensor(
+                [float(x1), float(x2), np.sin(float(x1)), np.sin(float(x2))])
+            y = torch.cuda.FloatTensor([float(y)])
             out.append([vec, y])
 
-    return out[:len(out) // 2]
+    return out
 
 
-def get_testing_data():
-    out = []
-    with open("two_spirals.dat") as data:
-        for line in data:
-            x1, x2, y = line.split()
-            vec = torch.FloatTensor([float(x1), float(x2), np.sin(float(x1)),
-                                     np.sin(float(x2))])
-            vec = vec.to(DEVICE)
-            y = torch.FloatTensor([float(y)]).to(DEVICE)
-            out.append([vec, y])
-
-    return out[len(out) // 2:]
+def partition(lst, n=2):
+    """
+    partitions list into n equal parts
+    (last partition may not be equal in size)
+    """
+    batch_size = int(len(lst) / n)
+    retval = [lst[batch_size * i:batch_size * (i + 1) - 1] for i in range(n)]
+    return retval
 
 
-TRAINING_DATA = SpiralDataset(get_training_data)
-TESTING_DATA = SpiralDataset(get_testing_data)
-# fig = plt.figure()
-# for i in range(len(SPIRAL_DATA)):
-# if SPIRAL_DATA[i][1] == 1:
-# color = 'ro'
-# else:
-# color = 'bo'
-# plt.plot(SPIRAL_DATA[i][0][0], SPIRAL_DATA[i][0][1], color)
+def get_train_test_sets(partitioned_dataset, iteration):
+    train = []
+    for i in range(len(partitioned_dataset)):
+        if i == iteration:
+            test = partitioned_dataset[i]
+        else:
+            train.extend(partitioned_dataset[i])
 
-# plt.show()
+    return train, test
 
-TRAINLOADER = torch.utils.data.DataLoader(TRAINING_DATA, batch_size=140)
-TESTLOADER = torch.utils.data.DataLoader(TESTING_DATA, batch_size=140)
 
-SHAPE = [4, 5, 6, 2, 1]
-NET = my_net.new_net(shape=SHAPE, activator=nn.Tanh)
-DIMENSION = my_net.get_dimension(SHAPE)
-NET.to(DEVICE)
-SWARM = pso.Swarm(num=20, dimension=DIMENSION, limit=[-1000, 1000],
-                  omega=0.9, alpha_1=-2, alpha_2=6)
+def time_it(func):
+    """ gives run time of a function """
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        loss = func(*args, **kwargs)
+        print(f'{func.__name__} took {time.time()-start_time} seconds')
+        return loss
+    return wrapper
 
-print("=============== TRAINING ===============")
-EPOCHS = 5000
-for e in range(EPOCHS):
-    running_loss = 0.0
-    for point, value in TRAINLOADER:
+
+def train_and_test(
+        train_loader,
+        test_loader,
+        epochs,
+        shape,
+        omega,
+        alpha1,
+        alpha2,
+        print_epoch=False):
+    """ trains and test a nn given shape and swarm parameters """
+    DEVICE = torch.device("cuda:0")
+
+    # setup
+    neural_net = my_net.new_net(shape=shape, activator=nn.Tanh)
+    dimension = my_net.get_dimension(shape)
+
+    neural_net.to(DEVICE)
+
+    swarm = pso.Swarm(num=20,
+                      dimension=dimension,
+                      limit=[-1e20,
+                             1e20],
+                      omega=omega,
+                      alpha_1=alpha1,
+                      alpha_2=alpha2)
+
+    # train
+    prev_loss = 0.0
+    for epoch in range(epochs):
+        running_loss = 0.0
+        for point, value in train_loader:
+            point, value = point.to(DEVICE), value.to(DEVICE)
+            neural_net.train()
+
+            objective_func = my_net.objective(
+                point, value, neural_net, my_net.squared_error)
+            swarm.perform_iteration(objective_func)
+
+            my_net.update_weights(neural_net, swarm.global_best)
+
+            prediction = neural_net(point)
+            loss = my_net.squared_error(prediction, value)
+            running_loss += loss.item()
+        else:
+            training_loss = running_loss / len(train_loader)
+            if print_epoch and training_loss < prev_loss:
+                print(
+                    f"epoch: {epoch}, training loss: {training_loss}")
+
+            prev_loss = training_loss
+
+    # record training loss
+
+    # test
+    my_net.update_weights(neural_net, swarm.global_best)
+    testing_loss = 0
+    for point, value in test_loader:
+
         point, value = point.to(DEVICE), value.to(DEVICE)
-        NET.train()
-
-        objective_func = my_net.objective(
-            point, value, NET, my_net.squared_error)
-        SWARM.perform_iteration(objective_func)
-
-        my_net.update_weights(NET, SWARM.global_best)
-
-        prediction = NET(point)
-        loss = my_net.squared_error(prediction, value)
-        running_loss += loss.item()
-    else:
-        print(f"epoch: {e}, training loss: {running_loss/len(TRAINLOADER)}")
-
-
-print("=============== TESTING ===============")
-# ensure the final global best is set
-my_net.update_weights(NET, SWARM.global_best)
-
-for e in range(5):
-    testing_loss = 0.0
-    for point, value in TESTLOADER:
-        point, value = point.to(DEVICE), value.to(DEVICE)
-        prediction = NET(point)
+        prediction = neural_net(point)
         loss = my_net.squared_error(prediction, value)
 
         testing_loss += loss.item()
-    else:
-        print(f"testing loss: {testing_loss/len(TESTLOADER)}")
+
+    testing_loss /= len(test_loader)
+
+    return (training_loss, training_loss, swarm.global_best)
+
+
+if __name__ == '__main__':
+
+    DATA = get_spiral_data()
+
+    # we will use cross validation to try and get a better understanding of the
+    # true error of the model
+    NUM_PARTS = 5
+    PARTS = partition(DATA, NUM_PARTS)  # partition into 5 pieces
+
+    AVERAGE_TRAIN_LOSS = 0.0
+    AVERAGE_TEST_LOSS = 0.0
+    for iteration in range(NUM_PARTS):
+        print(f"========== ITERATION {iteration} =============")
+        train, test = get_train_test_sets(PARTS, iteration)
+
+        train, test = SpiralDataset(train), SpiralDataset(test)
+
+        train_l = torch.utils.data.DataLoader(train, len(train))
+        test_l = torch.utils.data.DataLoader(test, len(test))
+
+        RESULT = train_and_test(
+            train_l,
+            test_l,
+            epochs=4000,
+            shape=[4, 6, 1],
+            omega=0.15,
+            alpha1=2.2,
+            alpha2=2.7)
+        print(
+            f'iteration: {iteration}, training loss: {RESULT[0]}, testing loss: {RESULT[1]}')
+
+        print("best weights:", RESULT[2])
+
+        AVERAGE_TRAIN_LOSS += RESULT[0]
+        AVERAGE_TEST_LOSS += RESULT[1]
+
+    AVERAGE_TRAIN_LOSS /= NUM_PARTS
+    AVERAGE_TEST_LOSS /= NUM_PARTS
+
+    print(
+        f'average training loss: {AVERAGE_TRAIN_LOSS}, average test loss: {AVERAGE_TEST_LOSS}')

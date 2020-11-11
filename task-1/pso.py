@@ -5,9 +5,9 @@ This implementation will be sequential to allow new information to be utilized
 as soon as it becomes available
 """
 
-import numpy as np
 import random as rd
-import math
+import numpy as np
+import torch
 
 # start with particle
 
@@ -27,24 +27,29 @@ class Particle:
         """ limit is a 2 element list """
         self.dimension = dimension
         self.limit = limit
-        self.particle_position = np.array(
-            [init_pos(limit) for x in range(dimension)], dtype=np.float64)
-        self.particle_velocity = np.array(
-            [0 for x in range(dimension)], dtype=np.float64)
+        self.particle_position = torch.cuda.FloatTensor(
+            [init_pos(limit) for x in range(dimension)])
+        self.particle_velocity = torch.cuda.FloatTensor(
+            [0 for x in range(dimension)])
         self.best = self.particle_position
         self.best_fitness = np.inf
 
     def update(self, omega, alpha_1, alpha_2, global_best):
         """ update the velocity and position of the particle """
-        rand_1 = np.array(
-            [rd.random() for x in range(self.dimension)], dtype=np.float64)
-        rand_2 = np.array(
-            [rd.random() for x in range(self.dimension)], dtype=np.float64)
+        rand_1 = torch.cuda.FloatTensor(
+            [rd.random() for x in range(self.dimension)])
+        rand_2 = torch.cuda.FloatTensor(
+            [rd.random() for x in range(self.dimension)])
 
         self.particle_velocity = omega * self.particle_velocity + (alpha_1 * rand_1) * (
             self.best - self.particle_position) + (alpha_2 * rand_2) * (global_best - self.particle_position)
 
         self.particle_position = self.particle_position + self.particle_velocity
+
+        self.particle_position[self.particle_position >
+                               self.limit[1]] = self.limit[1]
+        self.particle_position[self.particle_position <
+                               self.limit[0]] = self.limit[0]
 
     def update_best(self, objective):
         """ if the current position is better than the current best, update """
@@ -59,7 +64,7 @@ class Swarm:
     Swarm used to optimize the objective function
     :param num: integer - the size of the swarm
     :param dimension: integer - the dimension of the particel
-    :param objective_function: function(np.array) -> float - the function to
+    :param objective_function: function(torch.cuda.FloatTensor) -> float - the function to
     minimize
     """
 
@@ -75,7 +80,7 @@ class Swarm:
         self.omega = omega
         self.alpha_1 = alpha_1
         self.alpha_2 = alpha_2
-        self.global_best = np.array(
+        self.global_best = torch.cuda.FloatTensor(
             [0 for x in range(dimension)])
         self.swarm = [Particle(dimension, limit) for x in range(num)]
         self.best_global_fitness = np.inf

@@ -16,7 +16,7 @@ def new_net(shape, activator=nn.ReLU):
     Assumes the same activiation function and linear layer type between each
     level
     Params:
-    shape [INT]: each element is the number of nodes for that layer
+    shape (INT): each element is the number of nodes for that layer
         e.g. [2,1] denotes a NN with two input nodes, one output, and no
         hidden layers (a perceptron)
 
@@ -64,7 +64,7 @@ def update_weights(net, weights):
         running_total = 0
         # set weights
         for params in net.parameters():
-            params.copy_(torch.reshape(torch.FloatTensor(
+            params.copy_(torch.reshape(torch.cuda.FloatTensor(
                 weights[running_total:
                         np.prod(params.size()) + running_total]),
                 params.size()))
@@ -76,8 +76,7 @@ def squared_error(pred, val):
     """
     Squared error calculates the mean squeared error between two vectors
     """
-    pred = pred.detach().numpy()
-    return sum(np.abs(val - pred)**2) / len(val)
+    return sum(torch.abs(val - pred)**2) / len(val)
 
 
 def fitness(point, actual_value, net, cost_func):
@@ -99,6 +98,7 @@ def objective(point, actual_value, net, loss_func):
     """
     def retfunc(weights):
         update_weights(net, weights)
-        return fitness(point, actual_value, net, loss_func)
+        return fitness(point, actual_value, net,
+                       loss_func)
 
     return retfunc
