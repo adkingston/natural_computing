@@ -84,7 +84,7 @@ def squared_error(pred, val):
     """
     Squared error calculates the mean squeared error between two vectors
     """
-    return sum(torch.abs(val - pred)**2) / len(val)
+    return float(sum(torch.abs(val - pred)**2) / len(val))
 
 
 def fitness(point, actual_value, net, cost_func):
@@ -93,7 +93,7 @@ def fitness(point, actual_value, net, cost_func):
     """
     predicted_value = net(point)
     cost = cost_func(predicted_value, actual_value)
-    return cost.item()
+    return cost
 
 
 def objective(point, actual_value, net, loss_func):

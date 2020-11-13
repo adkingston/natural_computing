@@ -30,8 +30,8 @@ class Particle:
         self.x = torch.cuda.FloatTensor(
             [init_pos(limit) for x in range(dimension)])
         self.v = torch.cuda.FloatTensor(
-            [0 for x in range(dimension)])
-        self.best = self.x
+            [0.1 for x in range(dimension)])
+        self.best = self.x.data
         self.best_fitness = np.inf
 
     def update(self, omega, alpha_1, alpha_2, g):
@@ -41,10 +41,10 @@ class Particle:
         rand_2 = torch.cuda.FloatTensor(
             [rd.random() for x in range(self.dimension)])
 
-        self.v = omega * self.v + (alpha_1 * rand_1) * (
-            self.best - self.x) + (alpha_2 * rand_2) * (g - self.x)
+        self.v = (omega * self.v + (alpha_1 * rand_1) * (
+            self.best - self.x) + (alpha_2 * rand_2) * (g - self.x)).data
 
-        self.x = self.x + self.v
+        self.x = (self.x + self.v).data
 
     def update_best(self, objective):
         """ if the current position is better than the current best, update """
@@ -96,7 +96,7 @@ class Swarm:
             # check if the particle's new pest is better than the current
             # global best
             if particle.best_fitness < self.best_global_fitness:
-                self.g = particle.x
+                self.g = particle.x.data
                 self.best_global_fitness = particle.best_fitness
 
     def optimize(self, objective_function, num_iterations=200):
