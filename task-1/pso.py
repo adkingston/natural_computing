@@ -101,8 +101,8 @@ class Swarm:
                 self.best_global_fitness = particle.best_fitness
 
         # print(
-            # f"epoch: {iteration}, training loss: {self.best_global_fitness:
-            # .5f}")
+            # f"epoch:{iteration}, training
+            # loss:{self.best_global_fitness:.5f}")
 
     def optimize(self, objective_function, test_obj_fn, num_iterations=200):
         """ perform the particle swarm algorithm.  """

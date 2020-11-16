@@ -98,7 +98,7 @@ def sgd_linear():
     train_loader = DataLoader(train, 10)
     test_loader = DataLoader(test, 10)
 
-    net = new_net((2, 8, 1), nn.Tanh)
+    net = new_net((2, 6, 5, 1), nn.Tanh)
 
     out = train_nn(net, train_loader, test_loader)
     print(json.dumps(out))

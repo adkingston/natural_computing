@@ -43,16 +43,16 @@ def get_weight_split(shape=(2, 1)):
     of the weight vector transformed into a 3x4 matrix
     """
     nds = [[0, 0]] + [[shape[i], shape[i + 1]] for i in range(len(shape) - 1)]
-    split = [
-        [
-            [
-                count_layer_weights(nds[j - 1]),
-                count_layer_weights(nds[j - 1]) + count_layer_weights(nds[j])
-            ],
-            get_layer_weight_shape(nds[j], (j != len(nds) - 1))
-        ]
-        for j in range(1, len(nds))
-    ]
+    split = []
+    for j in range(1, len(nds)):
+        if j == 1:
+            split.append([[0, count_layer_weights(nds[j])],
+                          get_layer_weight_shape(nds[j])])
+        else:
+            split.append([[split[j - 2][0][1],
+                           split[j - 2][0][1] + count_layer_weights(nds[j])],
+                          get_layer_weight_shape(nds[j],
+                                                 (j != len(nds) - 1))])
     return split
 
 
@@ -69,8 +69,9 @@ def make_neural_network(shape=(2, 1), activation_function=np.sin):
     split = get_weight_split(shape)
 
     def nn(weights, inp):
-        inp = np.append(inp, [1])
         for sp in split:
+            if sp != split[-1]:
+                inp = np.append(inp, [1])
             index, sh = sp[0], sp[1]
             W = np.asarray(weights[index[0]: index[1]]).reshape(sh)
 
@@ -139,7 +140,7 @@ def pso_linear():
     y_test = np.array([x[1] for x in test_raw])
 
     # define neural network
-    shape = (2, 8, 1)
+    shape = (2, 6, 5, 1)
     net = make_neural_network(shape)
     out = train_nn(net, shape, x_train, y_train, x_test, y_test)
     print(json.dumps(out))
