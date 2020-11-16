@@ -157,7 +157,7 @@ def train_nn(net, shape, x_train, y_train, x_test, y_test):
         alpha_2=1.61
     )
 
-    epochs = 10000
+    epochs = 5000
 
     test_cost = get_cost_fn(net, x_test, y_test)
     swarm.optimize(cost, test_cost, epochs)
