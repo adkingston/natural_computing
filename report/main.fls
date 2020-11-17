@@ -97,6 +97,9 @@ INPUT /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
 INPUT /home/alexander/school/natural_computing/task-1/data/figures/nonlinear.png
 INPUT /home/alexander/school/natural_computing/task-1/data/figures/nonlinear.png
 INPUT /home/alexander/school/natural_computing/task-1/data/figures/nonlinear.png
+INPUT ../task-1/data/figures/linear.png
+INPUT ../task-1/data/figures/linear.png
+INPUT ../task-1/data/figures/linear.png
 INPUT main.aux
 INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb

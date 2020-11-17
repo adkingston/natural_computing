@@ -1,6 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1605575697 "main.tex" "main.pdf" "main" 1605575698
-  "/home/alexander/school/natural_computing/task-1/data/figures/nonlinear.png" 1605570888 35556 0bc00644dcc2ec9d8c550e3a5177990f ""
+["pdflatex"] 1605583501 "main.tex" "main.pdf" "main" 1605583501
+  "../task-1/data/figures/linear.png" 1605583135 39696 eb37bcba0147f2e4b84d992934972c97 ""
+  "/home/alexander/school/natural_computing/task-1/data/figures/nonlinear.png" 1605583134 35240 911e3d40d81da1116aacee77a3683800 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1591545468 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1591545468 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1591545468 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -59,8 +60,8 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1591545468 33301 a3134070eacafb10b1f371612ce2650d ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1602545702 4727905 1b81189106e2406a827797a37162c1c0 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1602545693 2514051 cae5e2dc433ba93d50204b31173cc00c ""
-  "main.aux" 1605575698 715 af2033d9287e91b1e435ffd5ae3f9d22 "pdflatex"
-  "main.tex" 1605575697 5452 55c5527f96cd3abe29ab4465830fb3ad ""
+  "main.aux" 1605583501 824 a7fc0f4d2569bffc09adb566a3d54a8e "pdflatex"
+  "main.tex" 1605583501 10163 eb458ab75107fa61530c7d9b6933d197 ""
   (generated)
   "main.aux"
   "main.log"

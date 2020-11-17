@@ -46,7 +46,7 @@ type experiment struct {
 }
 
 func fitness(train_loss, test_loss float64) float64 {
-	return math.Abs(train_loss-test_loss) + (train_loss+test_loss)/2.0
+	return 1 - (math.Abs(train_loss-test_loss) + (train_loss+test_loss)/2.0)
 }
 
 // partitions the data set in the given file into n pieces.

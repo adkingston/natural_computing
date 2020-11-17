@@ -140,7 +140,7 @@ def pso_linear():
     y_test = np.array([x[1] for x in test_raw])
 
     # define neural network
-    shape = (2, 6, 5, 1)
+    shape = (2, 8, 5, 1)
     net = make_neural_network(shape)
     out = train_nn(net, shape, x_train, y_train, x_test, y_test)
     print(json.dumps(out))
@@ -153,9 +153,9 @@ def train_nn(net, shape, x_train, y_train, x_test, y_test):
         num=10,
         dimension=data.get_dimension(shape),
         limit=[-0.5, 0.5],
-        omega=0.6,
-        alpha_1=1.61,
-        alpha_2=1.61
+        omega=0.7,
+        alpha_1=1.5,
+        alpha_2=1.5
     )
 
     epochs = 5000
@@ -163,10 +163,14 @@ def train_nn(net, shape, x_train, y_train, x_test, y_test):
     test_cost = get_cost_fn(net, x_test, y_test)
     swarm.optimize(cost, test_cost, epochs)
 
+    e_train = swarm.best_global_fitness
+    e_test = np.float64(swarm.test_loss_history[-1])
+    fitness = 1 - ((e_train + e_test) / 2. + e_test - e_train)
     return {
         'training_loss': swarm.best_global_fitness,
         'train_epochs': swarm.train_loss_history,
         'testing_loss': np.float64(swarm.test_loss_history[-1]),
+        'fitness': fitness,
         'test_epochs': swarm.test_loss_history,
     }
 
