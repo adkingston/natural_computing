@@ -81,7 +81,7 @@ class Swarm:
         self.train_loss_history = []
         self.test_loss_history = []
 
-    def perform_iteration(self, objective):
+    def perform_iteration(self, objective, iteration):
         """ perform a single iteration on the entire swarm """
         for particle in self.swarm:
             # update the particle's velocity and position
@@ -101,12 +101,12 @@ class Swarm:
                 self.best_global_fitness = particle.best_fitness
 
         # print(
-            # f"epoch:{iteration}, training
+            # f"epoch: {iteration}, training
             # loss:{self.best_global_fitness:.5f}")
 
     def optimize(self, objective_function, test_obj_fn, num_iterations=200):
         """ perform the particle swarm algorithm.  """
         for iteration in range(num_iterations):
-            self.perform_iteration(objective_function)
+            self.perform_iteration(objective_function, iteration)
             self.train_loss_history.append(str(objective_function(self.g)))
             self.test_loss_history.append(str(test_obj_fn(self.g)))

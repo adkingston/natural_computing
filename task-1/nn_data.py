@@ -37,12 +37,12 @@ def get_spiral_data(filename, transform, tr=False):
         for line in data:
             x1, x2, y = line.split()
             vec = transform(x1, x2, tr)
-            y = [np.float64(y)]
+            y = np.float64(y)
 
             if tr:
-                y = torch.FloatTensor(y)
+                y = torch.FloatTensor([y])
             else:
-                y = np.array(y)
+                y = np.array([y])
 
             out.append([vec, y])
 
@@ -50,12 +50,12 @@ def get_spiral_data(filename, transform, tr=False):
 
 
 def T6(x1, x2, tr=False):
-    retval = [np.float64(x1),
-              np.float64(x2),
-              np.float64(x1)**2,
-              np.float64(x2)**2,
-              np.sin(np.float64(x1)),
-              np.sin(np.float64(x2))]
+    retval = [float(x1),
+              float(x2),
+              # float(x1)**2,
+              # float(x2)**2,
+              np.sin(float(x1)),
+              np.sin(float(x2))]
 
     if tr:
         return torch.FloatTensor(retval)

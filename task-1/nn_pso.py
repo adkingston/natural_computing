@@ -118,7 +118,7 @@ def pso_nonlinear():
     y_test = np.array([x[1] for x in test_raw])
 
     # define neural network
-    shape = (6, 8, 1)
+    shape = (4, 8, 1)
     net = make_neural_network(shape)
     out = train_nn(net, shape, x_train, y_train, x_test, y_test)
     print(json.dumps(out))
@@ -150,12 +150,12 @@ def train_nn(net, shape, x_train, y_train, x_test, y_test):
     cost = get_cost_fn(net, x_train, y_train)
 
     swarm = pso.Swarm(
-        num=10,
+        num=20,
         dimension=data.get_dimension(shape),
         limit=[-0.5, 0.5],
         omega=0.7,
         alpha_1=1.5,
-        alpha_2=1.5
+        alpha_2=1.45
     )
 
     epochs = 5000
@@ -176,6 +176,19 @@ def train_nn(net, shape, x_train, y_train, x_test, y_test):
 
 
 if __name__ == "__main__":
+    # full = data.get_spiral_data('two_spirals.dat', data.T6)
+    # train = full[:int(len(full) / 2.)]
+    # test = full[int(len(full) / 2.):]
+
+    # x_train = [x[0] for x in train]
+    # y_train = [x[1] for x in train]
+    # x_test = [x[0] for x in test]
+    # y_test = [x[1] for x in test]
+
+    # shape = (4, 8, 1)
+    # net = make_neural_network(shape)
+    # out = train_nn(net, shape, x_train, y_train, x_test, y_test)
+    # print(json.dumps(out))
     if len(sys.argv) > 2 and sys.argv[2] == 'linear':
         pso_linear()
     else:

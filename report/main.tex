@@ -13,7 +13,7 @@
 \maketitle
 \section{Neural Network Training with PSO}
 \subsection{Choosing the Fitness Function}
-This task is interpreted to mean that we are to design a fitness function to evaluate the fitness of the network as a whole after it has been trained.
+This task is interpreted to mean that we are to design a fitness function to evaluate the fitness of the network as a whole after it has been trained, as to use the testing error for optimisation of the model itself contradicts the idea of a test set.
 Let the training error $e_T$, and the testing error $e_\tau$. 
 Taking the average of the two would be a sensible, if not standard course of action. 
 However, a fitness function would need to incorporate a measure of how overfit the model is to the training data in order to be effective. 
@@ -33,7 +33,7 @@ The dimension of the weight vector for a would be the number of edges connecting
 \end{equation}
 where the final decrement addresses non-existent bias terms in the output layer that were counted in the summation.
 
-For this task, we set the shape to be $\left(6, 8, 1\right)$, meaning that the dimension of the search space $D=43$. 
+For this task, we set the shape to be $\left(4, 8, 1\right)$, meaning that the dimension of the search space $D=43$. 
 To ensure that we are notified of a divergent swarm, we set $-a=b=20$, meaning that the search space for the PSO will be $\left[-20,20\right]^{43}$. 
 
 \subsection{Training the Model}
@@ -42,9 +42,10 @@ The model using SGD provides a fairly standard baseline on which to test the PSO
 In the code provided, the PSO neural net does not use any third party machine learning libraries as due to the nature of PSO, these neural nets only needed to consider forward propagation, not backwards.
 For the SGD optimised net, Pytorch was used due to the myriad of material online explaining how to code it. 
 
-Each network was trained with 10-fold cross validation using the cross-validate program provided (refer to the README in the task-1 directory on how to use it). 
-The parameters for the PSO were as follows: $n=10$, $\omega=0.6$, $\alpha_1 = \alpha_2 = 1.61$. 
-The parameters for the SGD were as follows: learning rate $=0.03$, momentum = $0.4$.
+Each network was trained with 2-fold cross validation using the cross-validate program provided (refer to the README in the task-1 directory on how to use it). 
+Two folds was chosen to adhere more closely to the instructions in the assignment, where half of the entire data set was used for training, and the other for testing.
+The parameters for the PSO were as follows: $n=20$, $\omega=0.7$, $\alpha_1 = 1.5 \alpha_2 = 1.3$. 
+The parameters for the SGD were as follows: learning rate $=0.03$.
 The figure below shows the training and testing loss of both over time:
 
 \begin{figure}[h]                   
@@ -58,9 +59,9 @@ The table below shows the final average training and testing losses, as well as 
  \hline
  Optimiser & Average Training Loss & Average Testing Loss & Average Fitness \\ [0.5ex] 
  \hline\hline
- PSO & 0.0159 & 0.0378 & 0.0489 \\ 
+ PSO & 0.0102 & 0.024 & 0.969 \\ 
  \hline
- SGD & 0.0828 & 0.1164 & 0.1332 \\
+ SGD & 0.0444 & 0.0549 & 0.939 \\
  \hline
 \end{tabular}
 \end{center}

@@ -64,24 +64,31 @@ func partitionDataset(filename string, numPartitions int) ([][]string, error) {
 
 	buf := bufio.NewReader(file)
 
-	iter := 0
+	tmpList := []string{}
 	for {
 		line, _, err := buf.ReadLine()
-		retval[iter] = append(retval[iter], string(line[:]))
+		tmpList = append(tmpList, string(line[:]))
 
-		iter++
-		if iter == numPartitions {
-			iter = 0
-		}
-
-		switch {
-		case err == io.EOF:
-			return retval, nil
-		case err != nil:
+		if err == io.EOF {
+			break
+		} else if err != nil {
 			return retval, err
 		}
 	}
 
+	batchSize := int(math.Floor(float64(len(tmpList)) / float64(numPartitions)))
+	for i := 0; i < numPartitions; i++ {
+		end := 0
+		if batchSize*(i+1) > len(tmpList) {
+			end = len(tmpList)
+		} else {
+			end = batchSize * (i + 1)
+		}
+		log.Infof("batchSize: %d, start: %d, end: %d", batchSize, batchSize*i, end)
+		retval[i] = tmpList[batchSize*i : end]
+	}
+	log.Info(retval)
+	return retval, nil
 }
 
 // saves each iterations dataset in the dir data/0{iteration number}/{train/test}.dat

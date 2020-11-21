@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"strings"
 	"time"
 
 	"github.com/pieterclaerhout/go-log"
@@ -27,12 +28,13 @@ func main() {
 	var optimizer string
 	var inputType string
 
-	flag.IntVar(&numFolds, "folds", 10, "the number of folds in the cross validation")
+	flag.IntVar(&numFolds, "folds", 2, "the number of folds in the cross validation")
 	flag.StringVar(&optimizer, "optimizer", "", "PSO or SGD. Errors if input is not one of these")
 	flag.StringVar(&inputType, "input-type", "", "linear or non-linear. Errors if input is not one of these")
 
 	flag.Parse()
 
+	optimizer = strings.ToLower(optimizer)
 	if len(optimizer) > 0 && optimizer != pso && optimizer != sgd {
 		log.Errorf("invalid optimizer. Choose either PSO or SGD. Optimizer provided:%s", optimizer)
 		return
@@ -57,11 +59,15 @@ func main() {
 	opts := []string{}
 	if len(optimizer) == 0 {
 		opts = []string{"pso", "sgd"}
+	} else {
+		opts = []string{optimizer}
 	}
 
 	inps := []string{}
 	if len(inputType) == 0 {
 		inps = []string{"linear", "nonlinear"}
+	} else {
+		inps = []string{inputType}
 	}
 
 	for _, opt := range opts {
