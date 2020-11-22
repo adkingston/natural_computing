@@ -1,0 +1,38 @@
+[
+  {
+    "iterations": 10,
+    "optimizer": "pso",
+    "input_type": "linear",
+    "average_training_loss": 0.18688450369469387,
+    "average_testing_loss": 0.2594456695980529,
+    "average_fitness": 0.2957262525497324,
+    "best_iteration": 9
+  },
+  {
+    "iterations": 10,
+    "optimizer": "pso",
+    "input_type": "nonlinear",
+    "average_training_loss": 0.015402486291634394,
+    "average_testing_loss": 0.03643152391473521,
+    "average_fitness": 0.047475265473219695,
+    "best_iteration": 9
+  },
+  {
+    "iterations": 10,
+    "optimizer": "sgd",
+    "input_type": "linear",
+    "average_training_loss": 0.1764342492756744,
+    "average_testing_loss": 0.2839394807815551,
+    "average_fitness": 0.33769209653449556,
+    "best_iteration": 9
+  },
+  {
+    "iterations": 10,
+    "optimizer": "sgd",
+    "input_type": "nonlinear",
+    "average_training_loss": 0.08249426664163668,
+    "average_testing_loss": 0.10535885244607926,
+    "average_fitness": 0.11924235482389729,
+    "best_iteration": 9
+  }
+]
