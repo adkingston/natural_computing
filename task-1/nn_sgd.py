@@ -138,8 +138,8 @@ def train_nn(nnet, train_loader, test_loader):
         'training_loss': train_loss,
         'testing_loss': test_loss,
         'fitness': fitness,
-        'train_epochs': train_history,
-        'test_epochs': test_history
+        # 'train_epochs': train_history,
+        # 'test_epochs': test_history
     }
 
 
@@ -169,7 +169,7 @@ def sgd_non_linear():
     train_l = DataLoader(train, 200)
     test_l = DataLoader(test, 200)
 
-    net = NeuralNetwork((4, 8, 1))
+    net = NeuralNetwork((4, 8, 2, 2, 1))
 
     out = train_nn(net, train_l, test_l)
     print(json.dumps(out))
