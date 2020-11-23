@@ -147,8 +147,8 @@ class geneticalgorithm():
         else:
             assert (type(variable_type_mixed).__module__=='numpy'),\
             "\n variable_type must be numpy array"  
-            assert (len(variable_type_mixed) == self.dim), \
-            "\n variable_type must have a length equal dimension."       
+            #assert (len(variable_type_mixed) == self.dim), \
+            #"\n variable_type must have a length equal dimension."       
 
             for i in variable_type_mixed:
                 assert (i=='real' or i=='int'),\
@@ -167,8 +167,8 @@ class geneticalgorithm():
             assert (type(variable_boundaries).__module__=='numpy'),\
             "\n variable_boundaries must be numpy array"
         
-            assert (len(variable_boundaries)==self.dim),\
-            "\n variable_boundaries must have a length equal dimension"        
+            #assert (len(variable_boundaries)==self.dim),\
+            #"\n variable_boundaries must have a length equal dimension"        
         
         
             for i in variable_boundaries:
