@@ -1,0 +1,10 @@
+{"max_num_iteration": 2, "population_size": 3, "mutation_probability": 0.1, "elit_ratio": 0.01, "crossover_probability": 0.5, "parents_portion": 0.3, "crossover_type": "uniform", "max_iteration_without_improv": null}82.28017100691795
+82.28017100691795
+82.28017100691795
+
+
+{"max_num_iteration": 2, "population_size": 3, "mutation_probability": 0.1, "elit_ratio": 0.01, "crossover_probability": 0.5, "parents_portion": 0.3, "crossover_type": "uniform", "max_iteration_without_improv": null}40.023332519456744
+40.023332519456744
+40.023332519456744
+
+

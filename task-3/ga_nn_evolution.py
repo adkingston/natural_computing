@@ -33,7 +33,7 @@ def get_data_torch():
 training_data, testing_data = get_data_torch()
 
 
-activation_funcs = [torch.tanh, torch.sin, torch.sigmoid]
+activation_funcs = [torch.tanh, torch.sin, torch.sigmoid, torch.abs]
 
 class NeuralNetwork(nn.Module):
     '''
@@ -67,16 +67,15 @@ class NeuralNetwork(nn.Module):
             self.lin_layers.append(nn.Linear(self.nn_list[i], self.nn_list[i+1]))
         
 #test       
-net1 = NeuralNetwork([4,5,1], activation_funcs[3])
-print('First Network:::')
-for p in net1.parameters():
-    print(p)
+#net1 = NeuralNetwork([4,5,1], activation_funcs[1])
+#print('First Network:::')
+#for p in net1.parameters():
+#    print(p)
     
 TRAINLOADER = torch.utils.data.DataLoader(training_data, batch_size=160)
 TESTLOADER = torch.utils.data.DataLoader(testing_data, batch_size=160)
 
-learning_rates = [0.001, 0.01 , 0.03, 0.1, 0.3, 0.5]
-inputs = [2, 4, 6]
+learning_rates = [0.01 , 0.03, 0.1, 0.3]
 
 def test_nn(nn_shape, activation_func, learning_rate):
     net = NeuralNetwork(nn_shape,activation_func)
@@ -142,7 +141,7 @@ def test_nn(nn_shape, activation_func, learning_rate):
             if test_loss<0.01 or test_loss2<0.01:
               break
 
-            print(train_loss,test_loss,train_loss2,test_loss2)
+            #print(train_loss,test_loss,train_loss2,test_loss2)
     
     return min([(train_loss+test_loss)/2,
                 (train_loss2+test_loss2)/2])
@@ -151,17 +150,14 @@ def test_nn(nn_shape, activation_func, learning_rate):
     #prediction[prediction<=0.5]=0
     #print(prediction)
 
-test_nn([6,8,2,1])
+#test_nn([6,8,2,1],activation_funcs[0],learning_rates[4])
 
 def ga_error(X):
-    X = [int(i) for i in X[:4] if int(i) != 0] #Drop all zeroes
-    X.insert(0,6) #add 4, the number of input features, at the beginning
-    X.append(1) #we just want 1 output
-    
-    #Build in some redundancy to account for poor initial values
-    err = [test_nn(X) for i in range(3)]
-        
-    error = (min(err)*1000) + np.sum(X[1:-1]) + 2*len(X)
+    shape = [int(i) for i in X[:4] if int(i) != 0] #Drop all zeroes
+    shape.insert(0,6) #add 4, the number of input features, at the beginning
+    shape.append(1) #we just want 1 output
+            
+    error = (test_nn(shape,activation_funcs[int(X[4])],learning_rates[int(X[5])])*1000) + np.sum(shape) + 2*len(shape)
 
     return error
 
@@ -170,8 +166,8 @@ def ga_error(X):
 #print(ga_error([2,2]))
 #print(ga_error([6,6,6,2]))
 
-algorithm_param = {'max_num_iteration': 2,
-                   'population_size':3,
+algorithm_param = {'max_num_iteration': 100,
+                   'population_size':5,
                    'mutation_probability':0.1,
                    'elit_ratio': 0.01,
                    'crossover_probability': 0.5,
@@ -179,10 +175,10 @@ algorithm_param = {'max_num_iteration': 2,
                    'crossover_type':'uniform',
                    'max_iteration_without_improv':None}
 
-varbound=np.array([[0,8],[0,8],[0,8],[0,8],[0,2],[0,5]])
+varbound=np.array([[0,8],[0,8],[0,8],[0,8],[0,3],[0,3]])
 
 model=ga(function=ga_error,
-         dimension=4,
+         dimension=6,
          variable_type='int',
          variable_boundaries=varbound,
          algorithm_parameters=algorithm_param,
@@ -194,7 +190,7 @@ convergence=model.report
 #solution=model.ouput_dict
 #print(convergence)
 
-f = open("GA_output.txt", "a")
+f = open("GA_output.txt", "w")
 f.write(json.dumps(algorithm_param))
 for item in convergence:
     f.write("%s\n" % item)

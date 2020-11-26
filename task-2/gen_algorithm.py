@@ -25,7 +25,7 @@ import numpy as np
 import sys
 import time
 from func_timeout import func_timeout, FunctionTimedOut
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 ###############################################################################
 ###############################################################################
@@ -58,6 +58,7 @@ class geneticalgorithm():
                  variable_boundaries=None,\
                  variable_type_mixed=None, \
                  function_timeout=10,\
+                 initial_pop=None,\
                  algorithm_parameters={'max_num_iteration': None,\
                                        'population_size':100,\
                                        'mutation_probability':0.1,\
@@ -246,48 +247,51 @@ class geneticalgorithm():
             self.mniwi=self.iterate+1
         else: 
             self.mniwi=int(self.param['max_iteration_without_improv'])
-
         
         ############################################################# 
+        #initial population
+        self.integers=np.where(self.var_type=='int')
+        self.reals=np.where(self.var_type=='real')
+        if initial_pop is None:
+            self.initial_pop=np.array([np.zeros(self.dim+1)]*self.pop_s)
+            solo=np.zeros(self.dim+1)
+            var=np.zeros(self.dim)       
+            
+            for p in range(0,self.pop_s):
+            
+                for i in self.integers[0]:
+                    var[i]=np.random.randint(self.var_bound[i][0],\
+                            self.var_bound[i][1]+1)  
+                    solo[i]=var[i].copy()
+                for i in self.reals[0]:
+                    var[i]=self.var_bound[i][0]+np.random.random()*\
+                    (self.var_bound[i][1]-self.var_bound[i][0])    
+                    solo[i]=var[i].copy()
+
+                obj=self.sim(var)            
+                solo[self.dim]=obj
+                self.initial_pop[p]=solo.copy()
+        else:
+            self.initial_pop = initial_pop
+
+        #############################################################
+
     def run(self):
         
         
         ############################################################# 
         # Initial Population
         
-        self.integers=np.where(self.var_type=='int')
-        self.reals=np.where(self.var_type=='real')
-        
-        
-        
-        pop=np.array([np.zeros(self.dim+1)]*self.pop_s)
+        pop = self.initial_pop.copy()
         solo=np.zeros(self.dim+1)
-        var=np.zeros(self.dim)       
-        
-        for p in range(0,self.pop_s):
-         
-            for i in self.integers[0]:
-                var[i]=np.random.randint(self.var_bound[i][0],\
-                        self.var_bound[i][1]+1)  
-                solo[i]=var[i].copy()
-            for i in self.reals[0]:
-                var[i]=self.var_bound[i][0]+np.random.random()*\
-                (self.var_bound[i][1]-self.var_bound[i][0])    
-                solo[i]=var[i].copy()
-
-
-            obj=self.sim(var)            
-            solo[self.dim]=obj
-            pop[p]=solo.copy()
-
         #############################################################
 
         #############################################################
         # Report
         self.report=[]
-        self.test_obj=obj
-        self.best_variable=var.copy()
-        self.best_function=obj
+        #self.test_obj=obj
+        #self.best_variable=var.copy()
+        self.best_function=np.min(pop[:,self.dim])
         ##############################################################   
                         
         t=1
@@ -300,8 +304,6 @@ class geneticalgorithm():
             #Sort
             pop = pop[pop[:,self.dim].argsort()]
 
-                
-            
             if pop[0,self.dim]<self.best_function:
                 counter=0
                 self.best_function=pop[0,self.dim].copy()
@@ -418,11 +420,11 @@ class geneticalgorithm():
         sys.stdout.write('\n\n Objective function:\n %s\n' % (self.best_function))
         sys.stdout.flush() 
         re=np.array(self.report)
-        #plt.plot(re)
-        #plt.xlabel('Iteration')
-        #plt.ylabel('Objective function')
-        #plt.title('Genetic Algorithm')
-        #plt.show()
+        plt.plot(re)
+        plt.xlabel('Iteration')
+        plt.ylabel('Objective function')
+        plt.title('Genetic Algorithm')
+        plt.show()
         if self.stop_mniwi==True:
             sys.stdout.write('\nWarning: GA is terminated due to the'+\
                              ' maximum number of iterations without improvement was met!')
